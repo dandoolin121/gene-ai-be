@@ -46,6 +46,7 @@ desktop.ini
 # Logs
 *.log
 logs/
+.output.txt
 
 # Spring Boot
 *.jar.pause

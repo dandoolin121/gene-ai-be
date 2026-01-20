@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "persons")
@@ -20,6 +21,10 @@ public class Person {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    @Builder.Default
+    private UUID uuid = UUID.randomUUID();
+
     private String firstName;
     private String lastName;
 
@@ -29,39 +34,30 @@ public class Person {
     private LocalDate deathDate;
     private String burialPlace;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "father_id")
-    private Person father;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mother_id")
-    private Person mother;
-
-    @OneToMany(mappedBy = "father")
+    @ManyToMany
+    @JoinTable(
+        name = "person_parents",
+        joinColumns = @JoinColumn(name = "child_id"),
+        inverseJoinColumns = @JoinColumn(name = "parent_id")
+    )
     @Builder.Default
-    private Set<Person> childrenFromFather = new HashSet<>();
+    private Set<Person> parents = new HashSet<>();
 
-    @OneToMany(mappedBy = "mother")
+    @ManyToMany(mappedBy = "parents")
     @Builder.Default
-    private Set<Person> childrenFromMother = new HashSet<>();
+    private Set<Person> children = new HashSet<>();
 
-    @OneToMany(mappedBy = "person1", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToMany(mappedBy = "participants")
     @Builder.Default
-    private Set<Marriage> marriagesAsPerson1 = new HashSet<>();
+    private Set<Marriage> marriages = new HashSet<>();
 
-    @OneToMany(mappedBy = "person2", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<Marriage> marriagesAsPerson2 = new HashSet<>();
-
-    public Set<Person> getChildren() {
-        Set<Person> children = new HashSet<>(childrenFromFather);
-        children.addAll(childrenFromMother);
-        return children;
+    public void addParent(Person parent) {
+        this.parents.add(parent);
+        parent.getChildren().add(this);
     }
 
-    public Set<Marriage> getMarriages() {
-        Set<Marriage> marriages = new HashSet<>(marriagesAsPerson1);
-        marriages.addAll(marriagesAsPerson2);
-        return marriages;
+    public void addChild(Person child) {
+        this.children.add(child);
+        child.getParents().add(this);
     }
 }
