@@ -1,0 +1,39 @@
+# Guidelines
+
+- Use as few comments as possible.
+- If comments are necessary, they must be in English.
+- Divide code into the smallest possible parts (modularity).
+- Strictly follow SOLID principles.
+- Use Hexagonal Architecture (Ports and Adapters) to separate business logic from infrastructure. Prefer descriptive names like `UseCase` for input ports and `Repository` or `Storage` for output ports instead of the generic `Port` suffix.
+- When naming output ports `Repository`, ensure Spring Data JPA repositories are clearly distinguished (e.g., by using `JpaRepository` suffix).
+- Separate domain models from persistence entities (JPA entities). Business logic should only operate on domain models.
+- Apply "Rich Domain Model" principle: encapsulate business logic and data integrity within domain entities, avoiding anemic models.
+- Use MapStruct for mapping between different layers (e.g., Domain Model to Entity). Ensure compatibility with Lombok by using the `lombok-mapstruct-binding` annotation processor.
+- Avoid using `expression = "java(...)"` in MapStruct mappers. Prefer using dedicated mapping methods, `@Named` qualifiers, or MapStruct-native features.
+- Ensure proper file visibility: implementation classes (e.g., Services, Adapters, Mappers, Entities) should be package-private whenever possible to maintain proper encapsulation within Hexagonal Architecture.
+- Use Docker for containerization. Maintain a `Dockerfile` for the application and `docker-compose.yml` for local development orchestration (including database).
+- Use environment variables for sensitive configuration (e.g., database credentials) in `application.properties` with sensible defaults for local development.
+- The project uses Swagger (OpenAPI) for API documentation. Swagger UI is available at `/swagger-ui/index.html`.
+- If Swagger is not accessible after adding dependencies, try rebuilding the Docker image with `docker compose up --build`. This is often required when changing dependencies or complex configuration.
+- Always add new and modified files to Git before finishing a task.
+- Use SLF4J (via Lombok's `@Slf4j`) for logging.
+- Logging should be in English.
+- Use appropriate log levels:
+    - `INFO` for high-level operations (e.g., REST requests, successful key business operations).
+    - `DEBUG` for detailed process flow and internal state changes.
+    - `TRACE` for very fine-grained internal operations, especially in persistence adapters.
+    - `ERROR` for exceptions and unexpected failures.
+- Avoid logging sensitive data.
+- Use Spock framework for unit testing with BDD approach (naming convention: `xxxSpec`).
+- Focus on testing functionality rather than individual classes.
+- Tests should cover from the domain layer onwards, using in-memory implementations for dependencies (e.g., list-based repositories).
+- For integration testing, use Testcontainers with PostgreSQL. 
+- All integration tests must extend `BaseIT` to share the database container and Spring context.
+- In-memory implementations for testing should be placed in `src/test/groovy` within appropriate packages.
+- Move repetitive object building logic in tests to `xxxSample` classes defined as Groovy `traits`.
+- Group samples by the type of object they produce and have test specifications implement these traits to reuse the building logic.
+- Use default values in sample methods, but pass a `Map props = [:]` to each method to allow overriding any property as needed, reducing the number of factory methods.
+- Use Liquibase for database schema management. 
+- Store Liquibase changesets in `src/main/resources/db/changelog/changes` as XML files.
+- Include all changeset files in `src/main/resources/db/changelog/db.changelog-master.xml`.
+- When using Liquibase, disable Hibernate's automatic DDL generation (`spring.jpa.hibernate.ddl-auto=validate` or `none`).

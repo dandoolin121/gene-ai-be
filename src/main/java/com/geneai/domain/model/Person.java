@@ -1,6 +1,5 @@
-package com.geneai.model;
+package com.geneai.domain.model;
 
-import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -8,8 +7,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-@Entity
-@Table(name = "persons")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,13 +14,7 @@ import java.util.UUID;
 @Builder
 public class Person {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(unique = true, nullable = false)
-    @Builder.Default
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuid;
 
     private String firstName;
     private String lastName;
@@ -34,30 +25,27 @@ public class Person {
     private LocalDate deathDate;
     private String burialPlace;
 
-    @ManyToMany
-    @JoinTable(
-        name = "person_parents",
-        joinColumns = @JoinColumn(name = "child_id"),
-        inverseJoinColumns = @JoinColumn(name = "parent_id")
-    )
     @Builder.Default
+    @Setter(AccessLevel.PRIVATE)
     private Set<Person> parents = new HashSet<>();
 
-    @ManyToMany(mappedBy = "parents")
     @Builder.Default
+    @Setter(AccessLevel.PRIVATE)
     private Set<Person> children = new HashSet<>();
 
-    @ManyToMany(mappedBy = "participants")
     @Builder.Default
+    @Setter(AccessLevel.PRIVATE)
     private Set<Marriage> marriages = new HashSet<>();
 
     public void addParent(Person parent) {
+        validateParentLimit();
         this.parents.add(parent);
-        parent.getChildren().add(this);
+        parent.children.add(this);
     }
 
-    public void addChild(Person child) {
-        this.children.add(child);
-        child.getParents().add(this);
+    private void validateParentLimit() {
+        if (this.parents.size() >= 2) {
+            throw new IllegalArgumentException("A person cannot have more than 2 parents");
+        }
     }
 }

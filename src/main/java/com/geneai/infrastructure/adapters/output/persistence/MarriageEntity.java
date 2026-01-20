@@ -1,4 +1,4 @@
-package com.geneai.model;
+package com.geneai.infrastructure.adapters.output.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,15 +15,14 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Marriage {
+class MarriageEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique = true, nullable = false)
-    @Builder.Default
-    private UUID uuid = UUID.randomUUID();
+    private UUID uuid;
 
     @ManyToMany
     @JoinTable(
@@ -32,16 +31,9 @@ public class Marriage {
         inverseJoinColumns = @JoinColumn(name = "person_id")
     )
     @Builder.Default
-    private Set<Person> participants = new HashSet<>();
+    private Set<PersonEntity> participants = new HashSet<>();
 
     private LocalDate marriageDate;
     private LocalDate divorceDate;
     private String marriagePlace;
-
-    public Person getSpouseOf(Person person) {
-        return participants.stream()
-                .filter(p -> !p.equals(person))
-                .findFirst()
-                .orElse(null);
-    }
 }
